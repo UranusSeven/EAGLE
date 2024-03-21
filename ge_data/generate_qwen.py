@@ -236,16 +236,17 @@ def main(
         device_map[f"model.layers.{i}"] = i * n_gpus // config.num_hidden_layers
     model = AutoModelForCausalLM.from_pretrained(
         model_path, trust_remote_code=True, torch_dtype=torch.float16, device_map=device_map
-    ).cuda()
+    )
     model.eval()
     logger.info("The model has been loaded.")
 
     logger.info(f"Generating trainning data, output dir: {output_dir}")
     assert os.path.isdir(output_dir), f"{output_dir} must be a directory"
     for i, example in tqdm(enumerate(tokenized_ds)):
-        output_path = os.path.join(output_dir, f"example_{i}.ckpt")
+        idx = i + start
+        output_path = os.path.join(output_dir, f"example_{idx}.ckpt")
         if os.path.exists(output_path):
-            logger.info(f"Skip existed example {i}.")
+            logger.info(f"Skip existed example {idx}.")
         torch.save(get_hidden_states(model=model, example=example), output_path)
 
 
